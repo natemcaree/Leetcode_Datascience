@@ -1,0 +1,99 @@
+SELECT
+-- Creat two subqueries. One will use CASE to find certain entries on occupations. The other will do the same but for cars. A third subquery will be used later for children.
+    subquery.Combined_Occupation,
+    subquery.vehicle_make,
+    -- Creating total count
+    COUNT(*) AS Total_Count,
+    -- Totaling number of children
+    SUM(subquery.Children) AS Total_Children,
+    -- Calculating number of children per household using subquery
+    SUM(subquery.Children) / COUNT(*) AS Children_Per_Household,
+    -- Calculating percent of car ownership (e.g what percent of advisers drive sedans) by creating a temp table and calculating from subquery.combined_occupation
+    COUNT(*) / t.total_count * 100 AS Car_Ownership_Percentage,
+    -- This needs to be fixed...
+    COUNT(subquery.Combined_Occupation) / (SELECT COUNT(*) FROM dummydata) AS Occupation_Percentage
+    -- CASES to find certain job titles and cars attached to them.
+FROM (
+    SELECT
+        CASE
+            WHEN occupation LIKE '%psychologist%' THEN 'Psychologist'
+            WHEN occupation LIKE '%engineer%' THEN 'Engineer'
+            WHEN occupation LIKE '%doctor%' THEN 'Doctor'
+            WHEN occupation LIKE '%therapist%' THEN 'Therapist'
+            WHEN occupation LIKE '%sales%' THEN 'Sales'
+            WHEN occupation LIKE '%adviser%' THEN 'Adviser'
+            WHEN occupation LIKE '%teacher%' THEN 'Teacher'
+            WHEN occupation LIKE '%it%' THEN 'IT'
+            WHEN occupation LIKE '%art%' THEN 'Art'
+            WHEN occupation LIKE '%scientist%' THEN 'Scientist'
+            WHEN occupation LIKE '%dietitian%' THEN 'Dietitian'
+        END AS Combined_Occupation,
+        CASE
+            WHEN vehicle_type LIKE '%sedan%' THEN 'Sedan'
+            WHEN vehicle_type LIKE '%hatchback%' THEN 'Hatchback'
+            WHEN vehicle_type LIKE '%pickup%' THEN 'Pickup'
+            WHEN vehicle_type LIKE '%van%' THEN 'Van'
+            WHEN vehicle_type LIKE '%SUV%' THEN 'SUV'
+            WHEN vehicle_type LIKE '%convertible%' THEN 'Convertible'
+            WHEN vehicle_type LIKE '%wagon%' THEN 'Wagon'
+            WHEN vehicle_type LIKE '%coupe%' THEN 'Coupe'
+        END AS vehicle_make,
+        Children
+    FROM
+        dummydata
+    WHERE
+        (occupation LIKE '%psychologist%'
+        OR occupation LIKE '%engineer%'
+        OR occupation LIKE '%doctor%'
+        OR occupation LIKE '%therapist%'
+        OR occupation LIKE '%sales%'
+        OR occupation LIKE '%adviser%'
+        OR occupation LIKE '%teacher%'
+        OR occupation LIKE '%it%'
+        OR occupation LIKE '%art%'
+        OR occupation LIKE '%scientist%'
+        OR occupation LIKE '%dietitian%')
+        AND
+        (vehicle_type LIKE '%sedan%'
+        OR vehicle_type LIKE '%hatchback%'
+        OR vehicle_type LIKE '%pickup%'
+        OR vehicle_type LIKE '%van%'
+        OR vehicle_type LIKE '%SUV%'
+        OR vehicle_type LIKE '%convertible%'
+        OR vehicle_type LIKE '%wagon%'
+        OR vehicle_type LIKE '%coupe%'
+        OR vehicle_type IS NULL)
+) subquery
+JOIN (
+    SELECT
+        CASE
+            WHEN occupation LIKE '%psychologist%' THEN 'Psychologist'
+            WHEN occupation LIKE '%engineer%' THEN 'Engineer'
+            WHEN occupation LIKE '%doctor%' THEN 'Doctor'
+            WHEN occupation LIKE '%therapist%' THEN 'Therapist'
+            WHEN occupation LIKE '%sales%' THEN 'Sales'
+            WHEN occupation LIKE '%adviser%' THEN 'Adviser'
+            WHEN occupation LIKE '%teacher%' THEN 'Teacher'
+            WHEN occupation LIKE '%it%' THEN 'IT'
+            WHEN occupation LIKE '%art%' THEN 'Art'
+            WHEN occupation LIKE '%scientist%' THEN 'Scientist'
+            WHEN occupation LIKE '%dietitian%' THEN 'Dietitian'
+        END AS Combined_Occupation,
+        COUNT(*) AS total_count
+    FROM
+        dummydata
+    WHERE
+        (occupation LIKE '%psychologist%'
+        OR occupation LIKE '%engineer%'
+        OR occupation LIKE '%doctor%'
+        OR occupation LIKE '%therapist%'
+        OR occupation LIKE '%sales%'
+        OR occupation LIKE '%adviser%'
+        OR occupation LIKE '%teacher%'
+        OR occupation LIKE '%it%'
+        OR occupation LIKE '%art%'
+        OR occupation LIKE '%scientist%'
+        OR occupation LIKE '%dietitian%')
+    GROUP BY Combined_Occupation
+) t ON subquery.Combined_Occupation = t.Combined_Occupation
+GROUP BY subquery.Combined_Occupation, subquery.vehicle_make, t.total_count
